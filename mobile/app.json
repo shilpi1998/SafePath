@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "SafePath",
+    "slug": "safepath",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#030712"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "SafePath needs your location to provide real-time safety information and route planning.",
+        "NSLocationAlwaysUsageDescription": "SafePath needs continuous location access to keep you safe during travel."
+      },
+      "config": {
+        "googleMapsApiKey": "AIzaSyB6-r7UpmoCYnrUtUdB27C2b5kZzS6LJ4M"
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#030712"
+      },
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyB6-r7UpmoCYnrUtUdB27C2b5kZzS6LJ4M"
+        }
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
