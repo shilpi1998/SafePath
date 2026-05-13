@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import User, EmergencyContact
@@ -58,8 +58,8 @@ def test_sms(to_phone: str):
 
 @router.post("/sos")
 def trigger_sos(
-    latitude: float,
-    longitude: float,
+    latitude: float = Query(...),
+    longitude: float = Query(...),
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):

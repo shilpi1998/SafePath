@@ -11,7 +11,7 @@ router = APIRouter(prefix="/api/community", tags=["community"])
 
 @router.post("/toggle-support")
 def toggle_community_support(
-    enabled: bool,
+    enabled: bool = Query(...),
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -28,8 +28,8 @@ def toggle_community_support(
 
 @router.post("/update-location")
 def update_location(
-    latitude: float,
-    longitude: float,
+    latitude: float = Query(...),
+    longitude: float = Query(...),
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -71,8 +71,8 @@ def get_community_status(
 
 @router.post("/sos")
 async def trigger_community_sos(
-    latitude: float,
-    longitude: float,
+    latitude: float = Query(...),
+    longitude: float = Query(...),
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
