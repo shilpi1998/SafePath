@@ -8,7 +8,7 @@ import {
   InfoWindow,
   DirectionsRenderer,
 } from "@react-google-maps/api";
-import { Incident, SafeZone, DangerZone, HeatMapPoint, RoutePoint } from "@/lib/types";
+import { Incident, SafeZone, DangerZone, HeatMapPoint, RoutePoint, Destination } from "@/lib/types";
 
 const libraries: "places"[] = ["places"];
 
@@ -43,6 +43,7 @@ interface MapViewProps {
   heatMapPoints?: HeatMapPoint[];
   heatMapFilter?: "all" | "high" | "medium" | "low";
   routePoints?: RoutePoint[];
+  routeDestinations?: Destination[];
   showHeatMap?: boolean;
   onMapClick?: (lat: number, lng: number) => void;
 }
@@ -55,6 +56,7 @@ export default function MapView({
   heatMapPoints = [],
   heatMapFilter = "all",
   routePoints = [],
+  routeDestinations = [],
   showHeatMap = true,
   onMapClick,
 }: MapViewProps) {
@@ -70,53 +72,67 @@ export default function MapView({
 
   const onLoad = useCallback((map: google.maps.Map) => setMap(map), []);
 
-  // Fetch real road directions when routePoints change
+  // Fetch real road directions when route destinations change
   useEffect(() => {
-    if (!isLoaded || routePoints.length < 2) {
+    // Use routeDestinations (actual stops) if available, fallback to routePoints
+    if (!isLoaded) {
       setDirections(null);
       return;
     }
 
-    const directionsService = new google.maps.DirectionsService();
+    if (routeDestinations.length >= 2) {
+      // Use actual ordered destinations for accurate multi-stop directions
+      const directionsService = new google.maps.DirectionsService();
+      const origin = routeDestinations[0];
+      const destination = routeDestinations[routeDestinations.length - 1];
+      const waypoints: google.maps.DirectionsWaypoint[] = routeDestinations
+        .slice(1, -1)
+        .map((d) => ({
+          location: new google.maps.LatLng(d.latitude, d.longitude),
+          stopover: true,
+        }));
 
-    // Extract start, end, and waypoints from route points
-    // routePoints has many interpolated points; we need the key stops
-    // First point is start, last is end. We use points that are at destination boundaries.
-    // Simplification: use first and last, plus sample key intermediate points
-    const start = routePoints[0];
-    const end = routePoints[routePoints.length - 1];
-
-    // Sample waypoints evenly (max 8 waypoints for Directions API)
-    const waypoints: google.maps.DirectionsWaypoint[] = [];
-    if (routePoints.length > 2) {
-      const step = Math.max(1, Math.floor((routePoints.length - 2) / Math.min(8, routePoints.length - 2)));
-      for (let i = step; i < routePoints.length - 1; i += step) {
-        waypoints.push({
-          location: new google.maps.LatLng(routePoints[i].latitude, routePoints[i].longitude),
-          stopover: false,
-        });
-        if (waypoints.length >= 8) break;
-      }
-    }
-
-    directionsService.route(
-      {
-        origin: new google.maps.LatLng(start.latitude, start.longitude),
-        destination: new google.maps.LatLng(end.latitude, end.longitude),
-        waypoints,
-        travelMode: google.maps.TravelMode.DRIVING,
-        optimizeWaypoints: false,
-      },
-      (result, status) => {
-        if (status === google.maps.DirectionsStatus.OK && result) {
-          setDirections(result);
-        } else {
-          console.warn("Directions request failed:", status);
-          setDirections(null);
+      directionsService.route(
+        {
+          origin: new google.maps.LatLng(origin.latitude, origin.longitude),
+          destination: new google.maps.LatLng(destination.latitude, destination.longitude),
+          waypoints,
+          travelMode: google.maps.TravelMode.DRIVING,
+          optimizeWaypoints: false,
+        },
+        (result, status) => {
+          if (status === google.maps.DirectionsStatus.OK && result) {
+            setDirections(result);
+          } else {
+            console.warn("Directions request failed:", status);
+            setDirections(null);
+          }
         }
-      }
-    );
-  }, [isLoaded, routePoints]);
+      );
+    } else if (routePoints.length >= 2) {
+      // Fallback: use first and last route points
+      const directionsService = new google.maps.DirectionsService();
+      const start = routePoints[0];
+      const end = routePoints[routePoints.length - 1];
+
+      directionsService.route(
+        {
+          origin: new google.maps.LatLng(start.latitude, start.longitude),
+          destination: new google.maps.LatLng(end.latitude, end.longitude),
+          travelMode: google.maps.TravelMode.DRIVING,
+        },
+        (result, status) => {
+          if (status === google.maps.DirectionsStatus.OK && result) {
+            setDirections(result);
+          } else {
+            setDirections(null);
+          }
+        }
+      );
+    } else {
+      setDirections(null);
+    }
+  }, [isLoaded, routeDestinations, routePoints]);
 
   if (!isLoaded) {
     return (

@@ -247,6 +247,7 @@ export default function Home() {
               heatMapPoints={heatMapPoints}
               heatMapFilter={heatMapFilter}
               routePoints={activePanel === "route" ? route?.route_points : undefined}
+              routeDestinations={activePanel === "route" ? route?.ordered_destinations : undefined}
               showHeatMap={showHeatMap}
               onMapClick={handleMapClick}
             />

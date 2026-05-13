@@ -48,11 +48,15 @@ export default function CommunitySupport({ dark, userLocation }: CommunitySuppor
   }, [enabled]);
 
   const fetchStatus = async () => {
+    const token = localStorage.getItem("safepath_token");
+    if (!token) return;
     try {
       const res = await getCommunityStatus();
       setEnabled(res.data.community_support_enabled);
       setNearbyHelpers(res.data.nearby_helpers_total);
-    } catch {}
+    } catch (err: any) {
+      console.error("Community status fetch failed:", err.response?.status, err.response?.data);
+    }
   };
 
   const connectWebSocket = () => {
@@ -135,7 +139,10 @@ export default function CommunitySupport({ dark, userLocation }: CommunitySuppor
         await sendLocation();
         fetchStatus();
       }
-    } catch {}
+    } catch (err: any) {
+      console.error("Toggle failed:", err.response?.status, err.response?.data);
+      alert("Failed to toggle community support. Please sign out and sign back in.");
+    }
     setLoading(false);
   };
 
